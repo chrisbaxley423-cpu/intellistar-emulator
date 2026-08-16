@@ -21,9 +21,13 @@
     #time{font-size:20px;background:rgba(0,0,0,0.25);padding:6px 10px;border-radius:2px;margin-top:6px}
 
     /* zip input */
-    .zip-wrap{margin-left:auto;display:flex;gap:8px;align-items:center}
+    .zip-wrap{margin-left:auto;display:flex;flex-direction:column;gap:6px;align-items:flex-end}
+    .zip-row{display:flex;gap:8px;align-items:center}
     .zip-wrap input{width:88px;padding:6px 8px;border-radius:4px;border:1px solid rgba(255,255,255,0.08);background:rgba(0,0,0,0.35);color:#fff}
     .zip-wrap button{padding:6px 10px;border-radius:4px;border:0;background:#06b6d4;color:#022;cursor:pointer;font-weight:700}
+    .zip-history{display:flex;gap:8px;flex-wrap:wrap;max-width:240px}
+    .zip-chip{background:rgba(255,255,255,0.06);padding:6px 8px;border-radius:14px;display:inline-flex;gap:8px;align-items:center;font-size:13px;cursor:pointer}
+    .zip-chip .remove{background:transparent;border:0;color:rgba(255,255,255,0.6);margin-left:4px;cursor:pointer}
 
     /* slides container */
     .slides{position:relative;height:420px; margin-top:24px}
@@ -87,10 +91,13 @@
         <div id="time">9:26</div>
       </div>
 
-      <!-- Zip input to change city/radar center -->
+      <!-- Zip input to change city/radar center + history -->
       <div class="zip-wrap" aria-label="Change city by ZIP">
-        <input id="zipInput" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="5" placeholder="ZIP" aria-label="Enter ZIP code">
-        <button id="zipBtn" aria-label="Set ZIP">Go</button>
+        <div class="zip-row">
+          <input id="zipInput" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="5" placeholder="ZIP" aria-label="Enter ZIP code">
+          <button id="zipBtn" aria-label="Set ZIP">Go</button>
+        </div>
+        <div id="zipHistory" class="zip-history" aria-live="polite" aria-label="ZIP history"></div>
       </div>
     </header>
 
@@ -148,7 +155,7 @@
           <div class="day"><div class="dname">SAT</div><div class="dicon">☀️</div><div class="dtemp">89<br/><small>73</small></div></div>
           <div class="day"><div class="dname">SUN</div><div class="dicon">⛈️</div><div class="dtemp">85<br/><small>70</small></div></div>
           <div class="day"><div class="dname">MON</div><div class="dicon">🌧️</div><div class="dtemp">83<br/><small>67</small></div></div>
-          <div class="day"><div class="dname">TUES</div><div class="dicon">⛈️</div><div class="dtemp">76<br/><small>63</small></div></div>
+          <div class="day"><div class="dname">TUES</div><div class="dicon">⛈��</div><div class="dtemp">76<br/><small>63</small></div></div>
         </section>
       </div>
 
@@ -178,6 +185,7 @@
       const progressBar = document.getElementById('progressBar');
       const zipInput = document.getElementById('zipInput');
       const zipBtn = document.getElementById('zipBtn');
+      const zipHistoryEl = document.getElementById('zipHistory');
       const radarFrame = document.getElementById('radarFrame');
 
       // Sample city/time values
@@ -188,6 +196,8 @@
       let current = 0;
       let autoplay = true;
       const DEFAULT_DELAY = 8000; // fallback 8s per slide
+      const HISTORY_KEY = 'intellistar:zipHistory';
+      const MAX_HISTORY = 6;
 
       // Progress tracking
       let rafId = null;
@@ -220,7 +230,6 @@
         if(progressElapsed >= currentDuration){
           progressElapsed = 0;
           show(current + 1);
-          // currentDuration updated in show(); progressStart will be reset there
         }
         rafId = requestAnimationFrame(progressTick);
       }
@@ -269,6 +278,55 @@
         startProgress();
       });
 
+      // ZIP history utilities
+      function readHistory(){
+        try{ const raw = localStorage.getItem(HISTORY_KEY); return raw ? JSON.parse(raw) : []; }catch(e){return []}
+      }
+      function writeHistory(list){
+        try{ localStorage.setItem(HISTORY_KEY, JSON.stringify(list)); }catch(e){console.warn('History save failed', e)}
+      }
+
+      function addZipToHistory(zip, label){
+        if(!zip) return;
+        const hist = readHistory();
+        // remove existing
+        const filtered = hist.filter(h => h.zip !== zip);
+        filtered.unshift({zip, label});
+        if(filtered.length > MAX_HISTORY) filtered.length = MAX_HISTORY;
+        writeHistory(filtered);
+        renderHistory();
+      }
+
+      function removeZipFromHistory(zip){
+        const hist = readHistory().filter(h => h.zip !== zip);
+        writeHistory(hist);
+        renderHistory();
+      }
+
+      function renderHistory(){
+        const hist = readHistory();
+        zipHistoryEl.innerHTML = '';
+        if(!hist.length) return;
+        hist.forEach(item => {
+          const btn = document.createElement('button');
+          btn.className = 'zip-chip';
+          btn.title = item.label ? `${item.label} (${item.zip})` : item.zip;
+          btn.innerHTML = `<span class="zip-label">${item.zip}</span><button class="remove" aria-label="remove">×</button>`;
+          btn.addEventListener('click', (e)=>{
+            // if remove button clicked
+            if(e.target && e.target.classList && e.target.classList.contains('remove')){
+              removeZipFromHistory(item.zip);
+              e.stopPropagation();
+              return;
+            }
+            // otherwise, use this zip
+            zipInput.value = item.zip;
+            lookupZip(item.zip);
+          });
+          zipHistoryEl.appendChild(btn);
+        });
+      }
+
       // ZIP lookup: uses Zippopotam.us (public, no key). Updates cityName and recenters radar iframe.
       async function lookupZip(zip){
         if(!zip || !/^\d{5}$/.test(zip)){
@@ -284,16 +342,17 @@
           const lat = parseFloat(place.latitude);
           const lon = parseFloat(place.longitude);
 
-          // update city label (e.g., Orlando, FL)
+          // update city label (e.g., ORLANDO, FL)
           const cityLabel = `${place['place name'].toUpperCase()}, ${data['state abbreviation']}`;
           cityName.textContent = cityLabel;
 
           // recenter radar iframe on the new location (zoom = 7)
           const zoom = 7;
           const src = `https://www.rainviewer.com/map.html?loc=${lat},${lon},${zoom}&layers=radar&palette=1&play=true`;
-          // Update iframe src safely
           if(radarFrame){ radarFrame.src = src; }
 
+          // add to history
+          addZipToHistory(zip, cityLabel);
         }catch(err){
           console.warn('ZIP lookup failed', err);
           alert('Could not find ZIP code — please check and try again.');
@@ -303,8 +362,11 @@
       zipBtn.addEventListener('click', ()=> lookupZip(zipInput.value.trim()));
       zipInput.addEventListener('keyup', e=>{ if(e.key === 'Enter') lookupZip(zipInput.value.trim()); });
 
+      // initialize history UI
+      renderHistory();
+
       // expose controls (optional)
-      window.intellistar = {show, lookupZip};
+      window.intellistar = {show, lookupZip, addZipToHistory, readHistory};
     })();
   </script>
 </body>
