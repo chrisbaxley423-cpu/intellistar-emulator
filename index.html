@@ -29,6 +29,19 @@
     .zip-chip{background:rgba(255,255,255,0.06);padding:6px 8px;border-radius:14px;display:inline-flex;gap:8px;align-items:center;font-size:13px;cursor:pointer}
     .zip-chip .remove{background:transparent;border:0;color:rgba(255,255,255,0.6);margin-left:4px;cursor:pointer}
 
+    /* config overlay */
+    .overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;z-index:60}
+    .config{width:920px;max-width:95%;background:rgba(10,10,10,0.95);padding:20px;border-radius:6px;color:#fff;box-shadow:0 10px 40px rgba(0,0,0,0.7);max-height:90vh;overflow:auto}
+    .config h2{margin:0 0 12px 0}
+    .form-row{display:flex;gap:12px;align-items:center;margin-bottom:10px}
+    .form-row label{width:120px;opacity:0.9}
+    .form-row input[type="text"], .form-row select, .form-row textarea{flex:1;padding:8px;border-radius:4px;border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.02);color:#fff}
+    .form-row textarea{height:68px}
+    .icon-gallery{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+    .icon-thumb{width:44px;height:44px;border-radius:6px;overflow:hidden;background:#fff;display:inline-flex;align-items:center;justify-content:center}
+    .small{width:36px;height:36px}
+    .controls{display:flex;gap:10px;justify-content:flex-end;margin-top:14px}
+
     /* slides container */
     .slides{position:relative;height:420px; margin-top:24px}
     .slide{position:absolute;left:0;right:0;top:0;bottom:0;opacity:0;transition:opacity 900ms ease;display:flex;align-items:center;justify-content:center;padding:18px}
@@ -42,6 +55,7 @@
     .now-card{width:720px;max-width:100%;background:linear-gradient(180deg, rgba(0,0,0,0.55), rgba(0,0,0,0.25));padding:24px;display:flex;gap:20px;backdrop-filter:blur(6px);box-shadow:0 8px 30px rgba(0,0,0,0.5)}
     .gauge{width:220px;height:160px;display:flex;flex-direction:column;align-items:center;justify-content:center}
     .icon{font-size:44px;margin-bottom:6px}
+    .icon img{max-width:100%;max-height:100%}
     .temp{font-size:56px;font-weight:700}
     .details{flex:1;color:var(--muted)}
     .cond{font-size:28px;margin-bottom:12px}
@@ -59,6 +73,7 @@
     .day{flex:1;padding:14px;text-align:center}
     .day .dname{font-weight:700;margin-bottom:8px}
     .day .dtemp{font-size:32px}
+    .day img{max-width:48px;max-height:48px}
 
     /* Radar */
     .radar-wrap{width:900px;max-width:100%;background:linear-gradient(180deg, rgba(0,0,0,0.55), rgba(0,0,0,0.25));padding:12px}
@@ -96,6 +111,7 @@
         <div class="zip-row">
           <input id="zipInput" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="5" placeholder="ZIP" aria-label="Enter ZIP code">
           <button id="zipBtn" aria-label="Set ZIP">Go</button>
+          <button id="openConfig" aria-label="Configure">Configure</button>
         </div>
         <div id="zipHistory" class="zip-history" aria-live="polite" aria-label="ZIP history"></div>
       </div>
@@ -106,7 +122,7 @@
       <div class="slide" id="slide-now" data-bg="https://images.unsplash.com/photo-1505483531331-3f9a4f4b3f7a?auto=format&fit=crop&w=1600&q=60" data-duration="8000">
         <section class="now-card">
           <div class="gauge">
-            <div class="icon">☀️</div>
+            <div class="icon" id="nowIcon">☀️</div>
             <div class="temp" id="tempValue">80°</div>
           </div>
           <div class="details">
@@ -137,10 +153,10 @@
           <div class="forecast-left">
             <div class="label">TONIGHT</div>
             <div class="icon" style="font-size:48px;margin-top:8px">⛅</div>
-            <div class="temp-big">97</div>
+            <div class="temp-big" id="tonightTemp">97</div>
             <div style="margin-top:8px;opacity:0.9">20% Chance<br/>of Rain</div>
           </div>
-          <div class="forecast-right">
+          <div class="forecast-right" id="tonightText">
             Sunny, along with a few afternoon clouds. A stray shower or thunderstorm is possible. High 97F. Winds NE at 5 to 10 mph.
           </div>
         </section>
@@ -148,14 +164,14 @@
 
       <!-- Beyond: 7-day (duration 8s) -->
       <div class="slide" id="slide-beyond" data-bg="https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=1600&q=60" data-duration="8000">
-        <section class="seven">
-          <div class="day"><div class="dname">WED</div><div class="dicon">☀️</div><div class="dtemp">89<br/><small>71</small></div></div>
-          <div class="day"><div class="dname">THU</div><div class="dicon">⛅</div><div class="dtemp">94<br/><small>74</small></div></div>
-          <div class="day"><div class="dname">FRI</div><div class="dicon">⛅</div><div class="dtemp">88<br/><small>73</small></div></div>
-          <div class="day"><div class="dname">SAT</div><div class="dicon">☀️</div><div class="dtemp">89<br/><small>73</small></div></div>
-          <div class="day"><div class="dname">SUN</div><div class="dicon">⛈️</div><div class="dtemp">85<br/><small>70</small></div></div>
-          <div class="day"><div class="dname">MON</div><div class="dicon">🌧️</div><div class="dtemp">83<br/><small>67</small></div></div>
-          <div class="day"><div class="dname">TUES</div><div class="dicon">⛈��</div><div class="dtemp">76<br/><small>63</small></div></div>
+        <section class="seven" id="sevenDays">
+          <div class="day" data-index="0"><div class="dname">WED</div><div class="dicon">☀️</div><div class="dtemp">89<br/><small>71</small></div></div>
+          <div class="day" data-index="1"><div class="dname">THU</div><div class="dicon">⛅</div><div class="dtemp">94<br/><small>74</small></div></div>
+          <div class="day" data-index="2"><div class="dname">FRI</div><div class="dicon">⛅</div><div class="dtemp">88<br/><small>73</small></div></div>
+          <div class="day" data-index="3"><div class="dname">SAT</div><div class="dicon">☀️</div><div class="dtemp">89<br/><small>73</small></div></div>
+          <div class="day" data-index="4"><div class="dname">SUN</div><div class="dicon">⛈️</div><div class="dtemp">85<br/><small>70</small></div></div>
+          <div class="day" data-index="5"><div class="dname">MON</div><div class="dicon">🌧️</div><div class="dtemp">83<br/><small>67</small></div></div>
+          <div class="day" data-index="6"><div class="dname">TUES</div><div class="dicon">⛈️</div><div class="dtemp">76<br/><small>63</small></div></div>
         </section>
       </div>
 
@@ -176,6 +192,55 @@
 
   <div class="offline-badge">Auto-slideshow enabled</div>
 
+  <!-- Configuration overlay (shown until Start or via Configure) -->
+  <div id="configOverlay" class="overlay" style="display:none">
+    <div class="config" role="dialog" aria-modal="true" aria-labelledby="configTitle">
+      <h2 id="configTitle">Configure Forecast & Upload Icons</h2>
+
+      <div class="form-row">
+        <label for="nowTemp">Now — Temp</label>
+        <input id="nowTemp" type="text" value="80" />
+      </div>
+      <div class="form-row">
+        <label for="nowCond">Condition</label>
+        <input id="nowCond" type="text" value="Sunny" />
+      </div>
+      <div class="form-row">
+        <label for="nowWind">Wind</label>
+        <input id="nowWind" type="text" value="NE 8 mph" />
+      </div>
+      <div class="form-row">
+        <label for="nowFeels">Feels like</label>
+        <input id="nowFeels" type="text" value="82" />
+      </div>
+
+      <hr />
+      <h3>Upload custom icons (PNG/JPG)</h3>
+      <div class="form-row">
+        <label for="iconUpload">Upload</label>
+        <input id="iconUpload" type="file" accept="image/*" multiple />
+      </div>
+      <div class="icon-gallery" id="iconGallery" aria-live="polite"></div>
+
+      <hr />
+      <h3>Assign icons</h3>
+      <div class="form-row">
+        <label for="nowIconSelect">Now icon</label>
+        <select id="nowIconSelect"></select>
+      </div>
+
+      <h3>7-day (quick edit)</h3>
+      <div id="sevenEdit">
+        <!-- JS will populate day editors -->
+      </div>
+
+      <div class="controls">
+        <button id="saveConfig">Start Emulator</button>
+        <button id="closeConfig">Close (keep paused)</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     (function(){
       const slides = Array.from(document.querySelectorAll('.slide'));
@@ -188,185 +253,208 @@
       const zipHistoryEl = document.getElementById('zipHistory');
       const radarFrame = document.getElementById('radarFrame');
 
-      // Sample city/time values
-      cityName.textContent = 'ORLANDO';
+      // Config UI elements
+      const configOverlay = document.getElementById('configOverlay');
+      const openConfig = document.getElementById('openConfig');
+      const iconUpload = document.getElementById('iconUpload');
+      const iconGallery = document.getElementById('iconGallery');
+      const nowIconSelect = document.getElementById('nowIconSelect');
+      const nowTempInput = document.getElementById('nowTemp');
+      const nowCondInput = document.getElementById('nowCond');
+      const nowWindInput = document.getElementById('nowWind');
+      const nowFeelsInput = document.getElementById('nowFeels');
+      const saveConfigBtn = document.getElementById('saveConfig');
+      const closeConfigBtn = document.getElementById('closeConfig');
+      const sevenEdit = document.getElementById('sevenEdit');
+
+      const nowIconEl = document.getElementById('nowIcon');
+      const tempValue = document.getElementById('tempValue');
+      const conditionEl = document.getElementById('condition');
+      const windEl = document.getElementById('wind');
+      const gustsEl = document.getElementById('gusts');
+      const feelsEl = document.getElementById('feels');
+      const tonightTemp = document.getElementById('tonightTemp');
+      const tonightText = document.getElementById('tonightText');
+
+      // 7-day day elements
+      const dayEls = Array.from(document.querySelectorAll('.seven .day'));
+
+      // History/localStorage keys
+      const HISTORY_KEY = 'intellistar:zipHistory';
+      const MAX_HISTORY = 6;
+      const ICONS_KEY = 'intellistar:icons';
+      const FORECAST_KEY = 'intellistar:forecast';
+
+      // Slideshow control
+      let current = 0;
+      let autoplay = false; // start paused until user starts emulator
+      let DEFAULT_DELAY = 8000; // fallback 8s per slide
+      let rafId = null;
+      let progressStart = 0;
+      let progressElapsed = 0;
+      let currentDuration = DEFAULT_DELAY;
+
       function updateTime(){const now=new Date();const h=now.getHours()%12||12;const m=String(now.getMinutes()).padStart(2,'0');timeEl.textContent=h+':'+m}
       updateTime(); setInterval(updateTime,60*1000);
 
-      let current = 0;
-      let autoplay = true;
-      const DEFAULT_DELAY = 8000; // fallback 8s per slide
-      const HISTORY_KEY = 'intellistar:zipHistory';
-      const MAX_HISTORY = 6;
-
-      // Progress tracking
-      let rafId = null;
-      let progressStart = 0;     // timestamp when progress counting started
-      let progressElapsed = 0;   // elapsed ms counted so far
-      let currentDuration = DEFAULT_DELAY;
-
+      // -------------------- Progress/Slideshow --------------------
       function startProgress(){
         progressStart = performance.now() - progressElapsed;
         cancelAnimationFrame(rafId);
         rafId = requestAnimationFrame(progressTick);
       }
+      function stopProgress(){ cancelAnimationFrame(rafId); rafId = null; }
+      function resetProgress(){ progressElapsed = 0; progressBar.style.width = '0%'; }
+      function progressTick(now){ now = now || performance.now(); progressElapsed = now - progressStart; const pct = Math.min(100, (progressElapsed / currentDuration) * 100); progressBar.style.width = pct + '%'; if(progressElapsed >= currentDuration){ progressElapsed = 0; show(current+1); } rafId = requestAnimationFrame(progressTick); }
 
-      function stopProgress(){
-        cancelAnimationFrame(rafId);
-        rafId = null;
-      }
+      function slideDuration(idx){ const s = slides[(idx+slides.length)%slides.length]; const d = parseInt(s.dataset.duration, 10); return (isFinite(d) && d>0) ? d : DEFAULT_DELAY; }
 
-      function resetProgress(){
-        progressElapsed = 0;
-        progressBar.style.width = '0%';
-      }
+      function show(i){ current = (i+slides.length)%slides.length; slides.forEach((s,idx)=> s.classList.toggle('active', idx===current)); navItems.forEach((n,idx)=> n.classList.toggle('active', idx===current)); document.body.style.backgroundImage = `url('${slides[current].dataset.bg}')`; currentDuration = slideDuration(current); progressElapsed = 0; progressBar.style.width = '0%'; if(autoplay) startProgress(); else stopProgress(); }
 
-      function progressTick(now){
-        now = now || performance.now();
-        progressElapsed = now - progressStart;
-        const pct = Math.min(100, (progressElapsed / currentDuration) * 100);
-        progressBar.style.width = pct + '%';
-
-        if(progressElapsed >= currentDuration){
-          progressElapsed = 0;
-          show(current + 1);
-        }
-        rafId = requestAnimationFrame(progressTick);
-      }
-
-      function slideDuration(idx){
-        const s = slides[(idx+slides.length)%slides.length];
-        const d = parseInt(s.dataset.duration, 10);
-        return (isFinite(d) && d > 0) ? d : DEFAULT_DELAY;
-      }
-
-      function show(i){
-        current = (i + slides.length) % slides.length;
-        slides.forEach((s,idx)=>{
-          if(idx===current){
-            s.classList.add('active');
-            document.body.style.backgroundImage = `url('${s.dataset.bg}')`;
-          } else {
-            s.classList.remove('active');
-          }
-        });
-        navItems.forEach((n,idx)=> n.classList.toggle('active', idx===current));
-
-        // update duration for current slide
-        currentDuration = slideDuration(current);
-        // reset progress when slide changes
-        progressElapsed = 0;
-        progressBar.style.width = '0%';
-        if(autoplay){ startProgress(); } else { stopProgress(); }
-      }
-
-      navItems.forEach((n,idx)=>{
-        n.addEventListener('click', ()=>{ show(idx); autoplay=false; stopProgress(); resetProgress(); });
-      });
+      navItems.forEach((n,idx)=> n.addEventListener('click', ()=>{ show(idx); autoplay=false; stopProgress(); resetProgress(); }));
 
       show(0);
-      if(autoplay) startProgress();
 
-      // Pause/resume on mouse over/out of slides
+      // Pause/resume on hover
       const slidesEl = document.getElementById('slides');
-      slidesEl.addEventListener('mouseenter', ()=>{
-        autoplay = false;
-        stopProgress();
-      });
-      slidesEl.addEventListener('mouseleave', ()=>{
-        autoplay = true;
-        startProgress();
-      });
+      slidesEl.addEventListener('mouseenter', ()=>{ autoplay=false; stopProgress(); });
+      slidesEl.addEventListener('mouseleave', ()=>{ if( localStorage.getItem(FORECAST_KEY) ) { autoplay = true; startProgress(); } });
 
-      // ZIP history utilities
-      function readHistory(){
-        try{ const raw = localStorage.getItem(HISTORY_KEY); return raw ? JSON.parse(raw) : []; }catch(e){return []}
-      }
-      function writeHistory(list){
-        try{ localStorage.setItem(HISTORY_KEY, JSON.stringify(list)); }catch(e){console.warn('History save failed', e)}
-      }
+      // -------------------- ZIP history (unchanged) --------------------
+      function readHistory(){ try{ const raw = localStorage.getItem(HISTORY_KEY); return raw ? JSON.parse(raw) : []; }catch(e){return []} }
+      function writeHistory(list){ try{ localStorage.setItem(HISTORY_KEY, JSON.stringify(list)); }catch(e){console.warn('History save failed', e)} }
+      function addZipToHistory(zip, label){ if(!zip) return; const hist = readHistory(); const filtered = hist.filter(h=> h.zip !== zip); filtered.unshift({zip,label}); if(filtered.length>MAX_HISTORY) filtered.length = MAX_HISTORY; writeHistory(filtered); renderHistory(); }
+      function removeZipFromHistory(zip){ const hist = readHistory().filter(h=> h.zip !== zip); writeHistory(hist); renderHistory(); }
+      function renderHistory(){ const hist = readHistory(); zipHistoryEl.innerHTML=''; if(!hist.length) return; hist.forEach(item=>{ const btn = document.createElement('button'); btn.className='zip-chip'; btn.title = item.label ? `${item.label} (${item.zip})` : item.zip; btn.innerHTML = `<span class="zip-label">${item.zip}</span><button class="remove" aria-label="remove">×</button>`; btn.addEventListener('click', (e)=>{ if(e.target && e.target.classList && e.target.classList.contains('remove')){ removeZipFromHistory(item.zip); e.stopPropagation(); return; } zipInput.value = item.zip; lookupZip(item.zip); }); zipHistoryEl.appendChild(btn); }); }
+      renderHistory();
 
-      function addZipToHistory(zip, label){
-        if(!zip) return;
-        const hist = readHistory();
-        // remove existing
-        const filtered = hist.filter(h => h.zip !== zip);
-        filtered.unshift({zip, label});
-        if(filtered.length > MAX_HISTORY) filtered.length = MAX_HISTORY;
-        writeHistory(filtered);
-        renderHistory();
-      }
-
-      function removeZipFromHistory(zip){
-        const hist = readHistory().filter(h => h.zip !== zip);
-        writeHistory(hist);
-        renderHistory();
-      }
-
-      function renderHistory(){
-        const hist = readHistory();
-        zipHistoryEl.innerHTML = '';
-        if(!hist.length) return;
-        hist.forEach(item => {
-          const btn = document.createElement('button');
-          btn.className = 'zip-chip';
-          btn.title = item.label ? `${item.label} (${item.zip})` : item.zip;
-          btn.innerHTML = `<span class="zip-label">${item.zip}</span><button class="remove" aria-label="remove">×</button>`;
-          btn.addEventListener('click', (e)=>{
-            // if remove button clicked
-            if(e.target && e.target.classList && e.target.classList.contains('remove')){
-              removeZipFromHistory(item.zip);
-              e.stopPropagation();
-              return;
-            }
-            // otherwise, use this zip
-            zipInput.value = item.zip;
-            lookupZip(item.zip);
-          });
-          zipHistoryEl.appendChild(btn);
-        });
-      }
-
-      // ZIP lookup: uses Zippopotam.us (public, no key). Updates cityName and recenters radar iframe.
-      async function lookupZip(zip){
-        if(!zip || !/^\d{5}$/.test(zip)){
-          alert('Please enter a 5-digit US ZIP code.');
-          return;
-        }
-        try{
-          const res = await fetch(`https://api.zippopotam.us/us/${zip}`);
-          if(!res.ok) throw new Error('ZIP not found');
-          const data = await res.json();
-          const place = data.places && data.places[0];
-          if(!place) throw new Error('No place data');
-          const lat = parseFloat(place.latitude);
-          const lon = parseFloat(place.longitude);
-
-          // update city label (e.g., ORLANDO, FL)
-          const cityLabel = `${place['place name'].toUpperCase()}, ${data['state abbreviation']}`;
-          cityName.textContent = cityLabel;
-
-          // recenter radar iframe on the new location (zoom = 7)
-          const zoom = 7;
-          const src = `https://www.rainviewer.com/map.html?loc=${lat},${lon},${zoom}&layers=radar&palette=1&play=true`;
-          if(radarFrame){ radarFrame.src = src; }
-
-          // add to history
-          addZipToHistory(zip, cityLabel);
-        }catch(err){
-          console.warn('ZIP lookup failed', err);
-          alert('Could not find ZIP code — please check and try again.');
-        }
-      }
-
+      async function lookupZip(zip){ if(!zip || !/^\d{5}$/.test(zip)){ alert('Please enter a 5-digit US ZIP code.'); return; } try{ const res = await fetch(`https://api.zippopotam.us/us/${zip}`); if(!res.ok) throw new Error('ZIP not found'); const data = await res.json(); const place = data.places && data.places[0]; if(!place) throw new Error('No place data'); const lat = parseFloat(place.latitude); const lon = parseFloat(place.longitude); const cityLabel = `${place['place name'].toUpperCase()}, ${data['state abbreviation']}`; cityName.textContent = cityLabel; const zoom = 7; const src = `https://www.rainviewer.com/map.html?loc=${lat},${lon},${zoom}&layers=radar&palette=1&play=true`; if(radarFrame){ radarFrame.src = src; } addZipToHistory(zip, cityLabel); }catch(err){ console.warn('ZIP lookup failed', err); alert('Could not find ZIP code — please check and try again.'); } }
       zipBtn.addEventListener('click', ()=> lookupZip(zipInput.value.trim()));
       zipInput.addEventListener('keyup', e=>{ if(e.key === 'Enter') lookupZip(zipInput.value.trim()); });
 
-      // initialize history UI
-      renderHistory();
+      // -------------------- Icons and forecast persistence --------------------
+      function loadIcons(){ try{ const raw = localStorage.getItem(ICONS_KEY); return raw ? JSON.parse(raw) : {}; }catch(e){ return {}; } }
+      function saveIcons(obj){ try{ localStorage.setItem(ICONS_KEY, JSON.stringify(obj)); }catch(e){ console.warn('Save icons failed', e); } }
 
-      // expose controls (optional)
-      window.intellistar = {show, lookupZip, addZipToHistory, readHistory};
+      function renderIconGallery(){ const icons = loadIcons(); iconGallery.innerHTML=''; nowIconSelect.innerHTML = ''; // include an empty/emoji default option
+        const defaultOption = document.createElement('option'); defaultOption.value='__emoji_sun'; defaultOption.textContent = '☀️ (default)'; nowIconSelect.appendChild(defaultOption);
+        Object.keys(icons).forEach(key=>{ const div = document.createElement('div'); div.className='icon-thumb'; div.title = key; const img = document.createElement('img'); img.src = icons[key]; img.alt = key; img.style.maxWidth='100%'; img.style.maxHeight='100%'; div.appendChild(img); const opt = document.createElement('option'); opt.value = key; opt.textContent = key; nowIconSelect.appendChild(opt); iconGallery.appendChild(div); }); }
+
+      function readForecast(){ try{ const raw = localStorage.getItem(FORECAST_KEY); return raw ? JSON.parse(raw) : null; }catch(e){return null} }
+      function saveForecast(f){ try{ localStorage.setItem(FORECAST_KEY, JSON.stringify(f)); }catch(e){console.warn('save forecast failed', e)} }
+
+      // Populate seven-day editors
+      function initSevenEditors(){ sevenEdit.innerHTML=''; const defaultDays = ['WED','THU','FRI','SAT','SUN','MON','TUES']; for(let i=0;i<7;i++){ const wrap = document.createElement('div'); wrap.className='form-row'; wrap.style.marginBottom='6px'; const label = document.createElement('label'); label.textContent = defaultDays[i]; label.style.width='80px'; const tempInp = document.createElement('input'); tempInp.type='text'; tempInp.value = dayEls[i] ? dayEls[i].querySelector('.dtemp').textContent.trim().split('\n')[0] : ''; tempInp.dataset.index = i; tempInp.style.width='80px'; const iconSel = document.createElement('select'); iconSel.dataset.index = i; iconSel.style.width='160px'; // options later
+ wrap.appendChild(label); wrap.appendChild(tempInp); wrap.appendChild(iconSel); sevenEdit.appendChild(wrap); }
+      }
+
+      // Populate select options for day editors and now icon select
+      function populateIconSelects(){ const icons = loadIcons(); const keys = Object.keys(icons); // build option list
+        const selects = Array.from(sevenEdit.querySelectorAll('select')); selects.forEach(sel=>{ sel.innerHTML=''; const opt0=document.createElement('option'); opt0.value='__emoji_default'; opt0.textContent='(default emoji)'; sel.appendChild(opt0); keys.forEach(k=>{ const o=document.createElement('option'); o.value=k; o.textContent=k; sel.appendChild(o); }); });
+        // ensure nowIconSelect contains these too
+        renderIconGallery(); // this also updates nowIconSelect
+      }
+
+      // Handle icon upload
+      iconUpload.addEventListener('change', async (e)=>{
+        const files = Array.from(e.target.files || []);
+        if(!files.length) return;
+        const icons = loadIcons();
+        for(const f of files){
+          try{
+            const data = await readFileAsDataURL(f);
+            // store under filename (without spaces)
+            const key = f.name.replace(/[^a-z0-9\-_.]/gi,'_');
+            icons[key] = data;
+          }catch(err){ console.warn('read file failed', err); }
+        }
+        saveIcons(icons);
+        populateIconSelects();
+        // clear input
+        e.target.value = '';
+      });
+
+      function readFileAsDataURL(file){ return new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(r.result); r.onerror=rej; r.readAsDataURL(file); }); }
+
+      // Apply forecast values to UI
+      function applyForecastToUI(f){ if(!f) return; if(f.now){ tempValue.textContent = f.now.temp ? (String(f.now.temp)+'°') : tempValue.textContent; conditionEl.textContent = f.now.cond || conditionEl.textContent; windEl.textContent = f.now.wind || windEl.textContent; feelsEl.textContent = (f.now.feels) ? (String(f.now.feels)+'°') : feelsEl.textContent; // icon
+          applyIconToElement('now', f.now.icon);
+        }
+        if(f.tonight){ tonightTemp.textContent = f.tonight.temp || tonightTemp.textContent; tonightText.textContent = f.tonight.text || tonightText.textContent; }
+        if(f.seven && Array.isArray(f.seven)){
+          f.seven.forEach((d,i)=>{ const el = dayEls[i]; if(!el) return; const tempEl = el.querySelector('.dtemp'); tempEl.innerHTML = (d.high||'--')+'<br/><small>'+(d.low||'--')+'</small>'; const iconEl = el.querySelector('.dicon'); applyIconToElement(el.dataset.index, d.icon, iconEl); });
+        }
+      }
+
+      function applyIconToElement(keyOrIndex, iconKey, elOverride){
+        const icons = loadIcons();
+        const el = elOverride || (keyOrIndex==='now' ? nowIconEl : (dayEls[keyOrIndex] && dayEls[keyOrIndex].querySelector('.dicon')));
+        if(!el) return;
+        if(!iconKey) return; // nothing to set
+        if(iconKey.startsWith('__emoji')){
+          // use emoji mapping for default
+          if(iconKey==='__emoji_sun') el.textContent = '☀️'; else el.textContent = '☀️';
+        } else if(icons[iconKey]){
+          el.innerHTML = `<img src="${icons[iconKey]}" alt="${iconKey}"/>`;
+        }
+      }
+
+      // Save config and start emulator
+      saveConfigBtn.addEventListener('click', ()=>{
+        const icons = loadIcons();
+        // build forecast object
+        const forecast = { now: {}, tonight: {}, seven: [] };
+        forecast.now.temp = nowTempInput.value.trim();
+        forecast.now.cond = nowCondInput.value.trim();
+        forecast.now.wind = nowWindInput.value.trim();
+        forecast.now.feels = nowFeelsInput.value.trim();
+        forecast.now.icon = nowIconSelect.value || '__emoji_sun';
+
+        // seven day inputs
+        const rows = Array.from(sevenEdit.querySelectorAll('.form-row'));
+        rows.forEach((r, idx)=>{
+          const inp = r.querySelector('input'); const sel = r.querySelector('select'); const high = inp ? inp.value.trim() : ''; const icon = sel ? sel.value : '';
+          forecast.seven.push({high, icon});
+        });
+
+        // apply to UI and persist
+        saveForecast(forecast);
+        applyForecastToUI(forecast);
+        // close overlay and start autoplay
+        configOverlay.style.display='none';
+        autoplay = true; currentDuration = slideDuration(current); progressElapsed = 0; startProgress();
+      });
+
+      closeConfigBtn.addEventListener('click', ()=>{
+        configOverlay.style.display='none';
+        // keep paused
+      });
+
+      openConfig.addEventListener('click', ()=>{
+        populateIconSelects(); initSevenEditors(); // populate day editors
+        // if existing forecast, load into fields
+        const f = readForecast(); if(f && f.now){ nowTempInput.value = f.now.temp || nowTempInput.value; nowCondInput.value = f.now.cond || nowCondInput.value; nowWindInput.value = f.now.wind || nowWindInput.value; nowFeelsInput.value = f.now.feels || nowFeelsInput.value; if(f.now.icon) nowIconSelect.value = f.now.icon; }
+        // populate seven editors values
+        if(f && Array.isArray(f.seven)){
+          const rows = Array.from(sevenEdit.querySelectorAll('.form-row'));
+          rows.forEach((r,i)=>{ const inp = r.querySelector('input'); const sel = r.querySelector('select'); if(inp && f.seven[i]) inp.value = f.seven[i].high || ''; if(sel && f.seven[i]) sel.value = f.seven[i].icon || '__emoji_default'; });
+        }
+        configOverlay.style.display = 'flex';
+      });
+
+      // Initialize overlay shown on first load so user can configure before starting
+      (function init(){
+        renderIconGallery(); initSevenEditors(); populateIconSelects();
+        // if we have a saved forecast, apply it and keep paused until user starts
+        const f = readForecast(); if(f){ applyForecastToUI(f); /* show overlay to allow reconfigure if desired */ configOverlay.style.display='flex'; } else {
+          // show overlay by default so user can configure before starting
+          configOverlay.style.display='flex';
+        }
+      })();
+
+      // expose some controls
+      window.intellistar = { show, lookupZip };
+
     })();
   </script>
 </body>
