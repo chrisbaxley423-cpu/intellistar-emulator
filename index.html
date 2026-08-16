@@ -3,14 +3,14 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>IntelliSTAR Emulator (Offline)</title>
+  <title>IntelliSTAR Emulator (Auto slides)</title>
   <style>
     :root{--accent:#b32b2b;--muted:rgba(255,255,255,0.85);--panel:rgba(0,0,0,0.45)}
     *{box-sizing:border-box}
     html,body{height:100%;margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:#fff}
-    body{background:linear-gradient(180deg,#2c3e50 0%, #4b6476 50%, #8aa1b3 100%);display:flex;align-items:flex-start;justify-content:center}
-    body::before{content:"";position:fixed;inset:0;background:radial-gradient(circle at 20% 20%, rgba(255,255,255,0.03), transparent 10%), linear-gradient(180deg, rgba(0,0,0,0.08), transparent 40%);pointer-events:none}
-    .container{width:100%;max-width:1100px;padding:28px}
+    body{background:#233b4a;background-size:cover;background-position:center;display:flex;align-items:flex-start;justify-content:center}
+    body::before{content:"";position:fixed;inset:0;background:linear-gradient(180deg, rgba(0,0,0,0.15), rgba(0,0,0,0.25));pointer-events:none}
+    .container{width:100%;max-width:1200px;padding:28px}
     .topbar{display:flex;align-items:center;gap:16px}
     .logo{display:flex;align-items:center;gap:12px}
     .twc{font-size:12px;line-height:12px;opacity:0.95}
@@ -19,36 +19,49 @@
     .city-time{margin-left:12px;display:flex;flex-direction:column}
     #cityName{font-size:26px;font-weight:700}
     #time{font-size:20px;background:rgba(0,0,0,0.25);padding:6px 10px;border-radius:2px;margin-top:6px}
-    .city-select{margin-left:auto}
-    select{background:rgba(0,0,0,0.35);color:#fff;border:1px solid rgba(255,255,255,0.06);padding:8px;border-radius:4px}
 
-    .alert{margin-top:28px;display:flex;flex-direction:column;gap:8px;backdrop-filter:blur(4px)}
-    .alert-label{background:var(--accent);padding:10px 12px;font-weight:700;letter-spacing:1px}
-    .alert-text{background:linear-gradient(180deg, rgba(0,0,0,0.35), rgba(0,0,0,0.22));padding:18px 20px;font-size:18px;min-height:44px}
-    .hidden{display:none}
+    /* slides container */
+    .slides{position:relative;height:420px; margin-top:24px}
+    .slide{position:absolute;left:0;right:0;top:0;bottom:0;opacity:0;transition:opacity 900ms ease;display:flex;align-items:center;justify-content:center;padding:18px}
+    .slide.active{opacity:1;pointer-events:auto}
 
-    .now-card{width:800px;max-width:100%;margin:36px 0 0 0;background:linear-gradient(180deg, rgba(0,0,0,0.45), rgba(0,0,0,0.25));padding:24px;display:flex;gap:20px;backdrop-filter:blur(6px);box-shadow:0 8px 30px rgba(0,0,0,0.5)}
+    /* Now card (compact) */
+    .now-card{width:720px;max-width:100%;background:linear-gradient(180deg, rgba(0,0,0,0.55), rgba(0,0,0,0.25));padding:24px;display:flex;gap:20px;backdrop-filter:blur(6px);box-shadow:0 8px 30px rgba(0,0,0,0.5)}
     .gauge{width:220px;height:160px;display:flex;flex-direction:column;align-items:center;justify-content:center}
     .icon{font-size:44px;margin-bottom:6px}
     .temp{font-size:56px;font-weight:700}
     .details{flex:1;color:var(--muted)}
     .cond{font-size:28px;margin-bottom:12px}
     .meta{display:flex;flex-direction:column;gap:8px}
-    .meta div{display:flex;justify-content:space-between;align-items:center}
-    .meta strong{opacity:0.95;margin-right:10px;font-weight:600}
 
-    .bottom-nav{display:flex;gap:36px;margin-top:18px}
-    .nav-item{opacity:0.8}
+    /* Tonight / Forecast card (large) */
+    .forecast-card{width:900px;max-width:100%;background:linear-gradient(90deg, rgba(0,0,0,0.65), rgba(0,0,0,0.35));padding:26px;display:flex;gap:24px;align-items:flex-start}
+    .forecast-left{width:260px;color:#fff}
+    .forecast-left .label{font-size:18px;opacity:0.9}
+    .forecast-left .temp-big{font-size:64px;font-weight:700;margin-top:12px}
+    .forecast-right{flex:1;color:rgba(255,255,255,0.95);font-size:20px}
+
+    /* Beyond (7-day) */
+    .seven{width:900px;max-width:100%;display:flex;gap:12px;background:linear-gradient(180deg, rgba(0,0,0,0.45), rgba(0,0,0,0.25));padding:18px;backdrop-filter:blur(6px)}
+    .day{flex:1;padding:14px;text-align:center}
+    .day .dname{font-weight:700;margin-bottom:8px}
+    .day .dtemp{font-size:32px}
+
+    /* Radar */
+    .radar-wrap{width:900px;max-width:100%;background:linear-gradient(180deg, rgba(0,0,0,0.55), rgba(0,0,0,0.25));padding:12px}
+    .radar{height:320px;background:#123;border-radius:2px}
+
+    /* bottom nav */
+    .bottom-nav{display:flex;gap:36px;margin-top:18px;align-items:center}
+    .nav-item{opacity:0.9;color:#fff;cursor:pointer;padding:8px}
     .nav-item.active{border-bottom:4px solid rgba(255,255,255,0.85);padding-bottom:6px}
 
-    /* small screens */
-    @media (max-width:800px){
-      .now-card{flex-direction:column;align-items:center}
-      .gauge{width:100%}
-    }
-
-    /* small helper for offline badge */
     .offline-badge{position:fixed;left:10px;bottom:10px;background:rgba(0,0,0,0.45);padding:8px 10px;border-radius:6px;font-size:12px}
+
+    @media (max-width:900px){
+      .forecast-card,.radar-wrap,.seven{flex-direction:column}
+      .forecast-left{width:100%}
+    }
   </style>
 </head>
 <body>
@@ -59,82 +72,124 @@
         <div class="local8">LOCAL<br/><span>ON THE</span> 8s</div>
       </div>
       <div class="city-time">
-        <div id="cityName">DES MOINES</div>
+        <div id="cityName">ORLANDO</div>
         <div id="time">8:00</div>
-      </div>
-      <div class="city-select">
-        <select id="citySelect" aria-label="Choose city"></select>
       </div>
     </header>
 
-    <div id="alertBar" class="alert hidden" role="status" aria-live="polite">
-      <div class="alert-label">ALERT</div>
-      <div id="alertText" class="alert-text">No alerts</div>
-    </div>
-
-    <section class="now-card">
-      <div class="gauge">
-        <div class="icon" id="icon">☀️</div>
-        <div class="temp" id="tempValue">80°</div>
+    <div class="slides" id="slides">
+      <!-- Now slide -->
+      <div class="slide" id="slide-now" data-bg="https://images.unsplash.com/photo-1505483531331-3f9a4f4b3f7a?auto=format&fit=crop&w=1600&q=60">
+        <section class="now-card">
+          <div class="gauge">
+            <div class="icon">☀️</div>
+            <div class="temp" id="tempValue">80°</div>
+          </div>
+          <div class="details">
+            <div class="cond" id="condition">Sunny</div>
+            <div class="meta">
+              <div><strong>WIND</strong><span id="wind">NE 8 mph</span></div>
+              <div><strong>GUSTS</strong><span id="gusts">NONE</span></div>
+              <div><strong>FEELS LIKE</strong><span id="feels">82°</span></div>
+            </div>
+          </div>
+        </section>
       </div>
-      <div class="details">
-        <div class="cond" id="condition">Sunny</div>
-        <div class="meta">
-          <div><strong>WIND</strong><span id="wind">NE 8 mph</span></div>
-          <div><strong>GUSTS</strong><span id="gusts">NONE</span></div>
-          <div><strong>FEELS LIKE</strong><span id="feels">82°</span></div>
+
+      <!-- Tonight slide -->
+      <div class="slide" id="slide-tonight" data-bg="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1600&q=60">
+        <section class="forecast-card">
+          <div class="forecast-left">
+            <div class="label">TONIGHT</div>
+            <div class="icon" style="font-size:48px;margin-top:8px">⛅</div>
+            <div class="temp-big">97</div>
+            <div style="margin-top:8px;opacity:0.9">20% Chance<br/>of Rain</div>
+          </div>
+          <div class="forecast-right">
+            Sunny, along with a few afternoon clouds. A stray shower or thunderstorm is possible. High 97F. Winds NE at 5 to 10 mph.
+          </div>
+        </section>
+      </div>
+
+      <!-- Beyond: 7-day -->
+      <div class="slide" id="slide-beyond" data-bg="https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=1600&q=60">
+        <section class="seven">
+          <div class="day"><div class="dname">WED</div><div class="dicon">☀️</div><div class="dtemp">89<br/><small>71</small></div></div>
+          <div class="day"><div class="dname">THU</div><div class="dicon">⛅</div><div class="dtemp">94<br/><small>74</small></div></div>
+          <div class="day"><div class="dname">FRI</div><div class="dicon">⛅</div><div class="dtemp">88<br/><small>73</small></div></div>
+          <div class="day"><div class="dname">SAT</div><div class="dicon">☀️</div><div class="dtemp">89<br/><small>73</small></div></div>
+          <div class="day"><div class="dname">SUN</div><div class="dicon">⛈️</div><div class="dtemp">85<br/><small>70</small></div></div>
+          <div class="day"><div class="dname">MON</div><div class="dicon">🌧️</div><div class="dtemp">83<br/><small>67</small></div></div>
+          <div class="day"><div class="dname">TUES</div><div class="dicon">⛈️</div><div class="dtemp">76<br/><small>63</small></div></div>
+        </section>
+      </div>
+
+      <!-- Radar slide -->
+      <div class="slide" id="slide-radar" data-bg="https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=1600&q=60">
+        <div class="radar-wrap">
+          <div style="color:#fff;font-size:20px;margin-bottom:8px">3 Hour Radar</div>
+          <div class="radar">
+            <!-- Placeholder radar image / iframe could go here -->
+            <img src="https://tilecache.rainviewer.com/v2/radar/1/0/0/0/0_0_0.png" alt="radar" style="max-width:100%;height:100%;object-fit:cover"/>
+          </div>
         </div>
       </div>
-    </section>
 
-    <nav class="bottom-nav">
-      <div class="nav-item active">Now</div>
-      <div class="nav-item">Tonight</div>
-      <div class="nav-item">Beyond</div>
+    </div>
+
+    <nav class="bottom-nav" id="nav">
+      <div class="nav-item" data-slide="0">Now</div>
+      <div class="nav-item" data-slide="1">Tonight</div>
+      <div class="nav-item" data-slide="2">Beyond</div>
+      <div class="nav-item" data-slide="3">Radar</div>
     </nav>
+
   </div>
 
-  <div class="offline-badge">Offline standalone index.html</div>
+  <div class="offline-badge">Auto-slideshow enabled</div>
 
   <script>
-    // Offline, self-contained sample data
     (function(){
-      const cities = [
-        {id:'desmoines',name:'DES MOINES',temp:92,icon:'☀️',condition:'Hot',wind:'SE 6 mph',gusts:'NONE',feels:94,alerts:['HEAT ADVISORY NOW IN EFFECT UNTIL 8 PM CDT THURSDAY']},
-        {id:'indianapolis',name:'INDIANAPOLIS',temp:80,icon:'☀️',condition:'Sunny',wind:'NE 8 mph',gusts:'NONE',feels:82,alerts:[]},
-        {id:'orlando',name:'ORLANDO',temp:86,icon:'⛅',condition:'Showers',wind:'E 12 mph',gusts:'20 mph',feels:88,alerts:['FLASH FLOOD WATCH UNTIL 2 AM EDT']}
-      ];
-
-      const citySelect = document.getElementById('citySelect');
+      const slides = Array.from(document.querySelectorAll('.slide'));
+      const navItems = Array.from(document.querySelectorAll('.nav-item'));
       const cityName = document.getElementById('cityName');
       const timeEl = document.getElementById('time');
-      const alertBar = document.getElementById('alertBar');
-      const alertText = document.getElementById('alertText');
-      const tempValue = document.getElementById('tempValue');
-      const condition = document.getElementById('condition');
-      const wind = document.getElementById('wind');
-      const gusts = document.getElementById('gusts');
-      const feels = document.getElementById('feels');
-      const icon = document.getElementById('icon');
 
-      function populateCities(){
-        cities.forEach(c=>{
-          const opt=document.createElement('option');opt.value=c.id;opt.textContent=c.name;citySelect.appendChild(opt);
-        });
-      }
-      function getCity(id){return cities.find(c=>c.id===id)||cities[0];}
+      // Sample city/time values
+      cityName.textContent = 'ORLANDO';
       function updateTime(){const now=new Date();const h=now.getHours()%12||12;const m=String(now.getMinutes()).padStart(2,'0');timeEl.textContent=h+':'+m}
-      function updateUI(id){const c=getCity(id);cityName.textContent=c.name;tempValue.textContent=c.temp+'°';condition.textContent=c.condition;wind.textContent=c.wind;gusts.textContent=c.gusts;feels.textContent=c.feels+'°';icon.textContent=c.icon; if(c.alerts&&c.alerts.length){alertText.textContent=c.alerts.join(' — ');alertBar.classList.remove('hidden')}else{alertBar.classList.add('hidden')}}
+      updateTime(); setInterval(updateTime,60*1000);
 
-      citySelect.addEventListener('change',e=>updateUI(e.target.value));
-      populateCities();citySelect.value=cities[0].id;updateTime();updateUI(citySelect.value);setInterval(updateTime,60*1000);
-
-      // Service Worker registration for hosted Pages
-      if('serviceWorker' in navigator){
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js').catch(()=>{});
+      let current = 0;
+      let autoplay = true;
+      const AUTOPLAY_DELAY = 6000; // 6s per slide
+      function show(i){
+        current = (i+slides.length)%slides.length;
+        slides.forEach((s,idx)=>{
+          if(idx===current){
+            s.classList.add('active');
+            document.body.style.backgroundImage = `url('${s.dataset.bg}')`;
+          } else {
+            s.classList.remove('active');
+          }
         });
+        navItems.forEach((n,idx)=> n.classList.toggle('active', idx===current));
       }
+
+      navItems.forEach((n,idx)=>{
+        n.addEventListener('click', ()=>{ show(idx); autoplay=false; });
+      });
+
+      show(0);
+      let interval = setInterval(()=>{ if(!autoplay) return; show(current+1); }, AUTOPLAY_DELAY);
+
+      // Pause on mouse over slides
+      const slidesEl = document.getElementById('slides');
+      slidesEl.addEventListener('mouseenter', ()=> autoplay=false);
+      slidesEl.addEventListener('mouseleave', ()=> autoplay=true);
+
+      // expose controls (optional)
+      window.intellistar = {show};
     })();
   </script>
 </body>
