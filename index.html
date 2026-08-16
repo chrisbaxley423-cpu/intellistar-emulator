@@ -20,6 +20,11 @@
     #cityName{font-size:26px;font-weight:700}
     #time{font-size:20px;background:rgba(0,0,0,0.25);padding:6px 10px;border-radius:2px;margin-top:6px}
 
+    /* zip input */
+    .zip-wrap{margin-left:auto;display:flex;gap:8px;align-items:center}
+    .zip-wrap input{width:88px;padding:6px 8px;border-radius:4px;border:1px solid rgba(255,255,255,0.08);background:rgba(0,0,0,0.35);color:#fff}
+    .zip-wrap button{padding:6px 10px;border-radius:4px;border:0;background:#06b6d4;color:#022;cursor:pointer;font-weight:700}
+
     /* slides container */
     .slides{position:relative;height:420px; margin-top:24px}
     .slide{position:absolute;left:0;right:0;top:0;bottom:0;opacity:0;transition:opacity 900ms ease;display:flex;align-items:center;justify-content:center;padding:18px}
@@ -66,6 +71,7 @@
     @media (max-width:900px){
       .forecast-card,.radar-wrap,.seven{flex-direction:column}
       .forecast-left{width:100%}
+      .zip-wrap{margin-top:10px;margin-left:0}
     }
   </style>
 </head>
@@ -79,6 +85,12 @@
       <div class="city-time">
         <div id="cityName">ORLANDO</div>
         <div id="time">9:26</div>
+      </div>
+
+      <!-- Zip input to change city/radar center -->
+      <div class="zip-wrap" aria-label="Change city by ZIP">
+        <input id="zipInput" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="5" placeholder="ZIP" aria-label="Enter ZIP code">
+        <button id="zipBtn" aria-label="Set ZIP">Go</button>
       </div>
     </header>
 
@@ -107,7 +119,7 @@
           <div style="color:#fff;font-size:20px;margin-bottom:8px">3 Hour Radar</div>
           <div class="radar">
             <!-- RainViewer map embed (animated radar) -->
-            <iframe src="https://www.rainviewer.com/map.html?loc=28.5383,-81.3792,7&layers=radar&palette=1&play=true" title="Animated radar" loading="lazy"></iframe>
+            <iframe id="radarFrame" src="https://www.rainviewer.com/map.html?loc=28.5383,-81.3792,7&layers=radar&palette=1&play=true" title="Animated radar" loading="lazy"></iframe>
           </div>
         </div>
       </div>
@@ -164,6 +176,9 @@
       const cityName = document.getElementById('cityName');
       const timeEl = document.getElementById('time');
       const progressBar = document.getElementById('progressBar');
+      const zipInput = document.getElementById('zipInput');
+      const zipBtn = document.getElementById('zipBtn');
+      const radarFrame = document.getElementById('radarFrame');
 
       // Sample city/time values
       cityName.textContent = 'ORLANDO';
@@ -254,8 +269,42 @@
         startProgress();
       });
 
+      // ZIP lookup: uses Zippopotam.us (public, no key). Updates cityName and recenters radar iframe.
+      async function lookupZip(zip){
+        if(!zip || !/^\d{5}$/.test(zip)){
+          alert('Please enter a 5-digit US ZIP code.');
+          return;
+        }
+        try{
+          const res = await fetch(`https://api.zippopotam.us/us/${zip}`);
+          if(!res.ok) throw new Error('ZIP not found');
+          const data = await res.json();
+          const place = data.places && data.places[0];
+          if(!place) throw new Error('No place data');
+          const lat = parseFloat(place.latitude);
+          const lon = parseFloat(place.longitude);
+
+          // update city label (e.g., Orlando, FL)
+          const cityLabel = `${place['place name'].toUpperCase()}, ${data['state abbreviation']}`;
+          cityName.textContent = cityLabel;
+
+          // recenter radar iframe on the new location (zoom = 7)
+          const zoom = 7;
+          const src = `https://www.rainviewer.com/map.html?loc=${lat},${lon},${zoom}&layers=radar&palette=1&play=true`;
+          // Update iframe src safely
+          if(radarFrame){ radarFrame.src = src; }
+
+        }catch(err){
+          console.warn('ZIP lookup failed', err);
+          alert('Could not find ZIP code — please check and try again.');
+        }
+      }
+
+      zipBtn.addEventListener('click', ()=> lookupZip(zipInput.value.trim()));
+      zipInput.addEventListener('keyup', e=>{ if(e.key === 'Enter') lookupZip(zipInput.value.trim()); });
+
       // expose controls (optional)
-      window.intellistar = {show};
+      window.intellistar = {show, lookupZip};
     })();
   </script>
 </body>
