@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>IntelliSTAR Emulator</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;700&family=Montserrat:ital,wght@0,300;0,700;1,400&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div id="app">
+    <header class="topbar">
+      <div class="logo">
+        <div class="twc">The<br/>Weather<br/>Channel</div>
+        <div class="local8">LOCAL<br/><span>ON THE</span> 8s</div>
+      </div>
+      <div class="city-time">
+        <div id="cityName">DES MOINES</div>
+        <div id="time">8:00</div>
+      </div>
+      <div class="city-select">
+        <select id="citySelect" aria-label="Choose city">
+          <!-- populated by JS -->
+        </select>
+      </div>
+    </header>
+
+    <main>
+      <div id="alertBar" class="alert hidden" role="status" aria-live="polite">
+        <div class="alert-label">ALERT</div>
+        <div id="alertText" class="alert-text">No alerts</div>
+      </div>
+
+      <section class="card now-card">
+        <div class="gauge">
+          <div class="icon">☀️</div>
+          <div class="temp" id="tempValue">80°</div>
+        </div>
+        <div class="details">
+          <div class="cond" id="condition">Sunny</div>
+          <div class="meta">
+            <div><strong>WIND</strong><span id="wind">NE 8 mph</span></div>
+            <div><strong>GUSTS</strong><span id="gusts">NONE</span></div>
+            <div><strong>FEELS LIKE</strong><span id="feels">82°</span></div>
+          </div>
+        </div>
+      </section>
+
+      <nav class="bottom-nav">
+        <div class="nav-item active">Now</div>
+        <div class="nav-item">Tonight</div>
+        <div class="nav-item">Beyond</div>
+      </nav>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
