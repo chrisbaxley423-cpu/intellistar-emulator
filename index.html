@@ -101,6 +101,17 @@
         </section>
       </div>
 
+      <!-- Radar slide (duration 12s) - live animated radar via RainViewer embed iframe -->
+      <div class="slide" id="slide-radar" data-bg="https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=1600&q=60" data-duration="12000">
+        <div class="radar-wrap">
+          <div style="color:#fff;font-size:20px;margin-bottom:8px">3 Hour Radar</div>
+          <div class="radar">
+            <!-- RainViewer map embed (animated radar) -->
+            <iframe src="https://www.rainviewer.com/map.html?loc=28.5383,-81.3792,7&layers=radar&palette=1&play=true" title="Animated radar" loading="lazy"></iframe>
+          </div>
+        </div>
+      </div>
+
       <!-- Tonight slide (duration 8s) -->
       <div class="slide" id="slide-tonight" data-bg="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1600&q=60" data-duration="8000">
         <section class="forecast-card">
@@ -129,17 +140,6 @@
         </section>
       </div>
 
-      <!-- Radar slide (duration 12s) - live animated radar via RainViewer embed iframe -->
-      <div class="slide" id="slide-radar" data-bg="https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=1600&q=60" data-duration="12000">
-        <div class="radar-wrap">
-          <div style="color:#fff;font-size:20px;margin-bottom:8px">3 Hour Radar</div>
-          <div class="radar">
-            <!-- RainViewer map embed (animated radar) -->
-            <iframe src="https://www.rainviewer.com/map.html?loc=28.5383,-81.3792,7&layers=radar&palette=1&play=true" title="Animated radar" loading="lazy"></iframe>
-          </div>
-        </div>
-      </div>
-
     </div>
 
     <div class="progress-wrap" aria-hidden="true">
@@ -148,9 +148,9 @@
 
     <nav class="bottom-nav" id="nav">
       <div class="nav-item" data-slide="0">Now</div>
-      <div class="nav-item" data-slide="1">Tonight</div>
-      <div class="nav-item" data-slide="2">Beyond</div>
-      <div class="nav-item" data-slide="3">Radar</div>
+      <div class="nav-item" data-slide="1">Radar</div>
+      <div class="nav-item" data-slide="2">Tonight</div>
+      <div class="nav-item" data-slide="3">Beyond</div>
     </nav>
 
   </div>
