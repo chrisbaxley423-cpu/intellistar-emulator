@@ -25,6 +25,10 @@
     .slide{position:absolute;left:0;right:0;top:0;bottom:0;opacity:0;transition:opacity 900ms ease;display:flex;align-items:center;justify-content:center;padding:18px}
     .slide.active{opacity:1;pointer-events:auto}
 
+    /* progress bar */
+    .progress-wrap{height:6px;background:rgba(255,255,255,0.08);border-radius:3px;overflow:hidden;margin-top:12px}
+    .progress-bar{height:100%;width:0;background:linear-gradient(90deg,#7dd3fc,#06b6d4);transition:width 120ms linear}
+
     /* Now card (compact) */
     .now-card{width:720px;max-width:100%;background:linear-gradient(180deg, rgba(0,0,0,0.55), rgba(0,0,0,0.25));padding:24px;display:flex;gap:20px;backdrop-filter:blur(6px);box-shadow:0 8px 30px rgba(0,0,0,0.5)}
     .gauge{width:220px;height:160px;display:flex;flex-direction:column;align-items:center;justify-content:center}
@@ -137,6 +141,10 @@
 
     </div>
 
+    <div class="progress-wrap" aria-hidden="true">
+      <div class="progress-bar" id="progressBar"></div>
+    </div>
+
     <nav class="bottom-nav" id="nav">
       <div class="nav-item" data-slide="0">Now</div>
       <div class="nav-item" data-slide="1">Tonight</div>
@@ -154,6 +162,7 @@
       const navItems = Array.from(document.querySelectorAll('.nav-item'));
       const cityName = document.getElementById('cityName');
       const timeEl = document.getElementById('time');
+      const progressBar = document.getElementById('progressBar');
 
       // Sample city/time values
       cityName.textContent = 'ORLANDO';
@@ -162,9 +171,48 @@
 
       let current = 0;
       let autoplay = true;
-      const AUTOPLAY_DELAY = 6000; // 6s per slide
+      const AUTOPLAY_DELAY = 8000; // 8s per slide
+
+      // Progress tracking
+      let rafId = null;
+      let progressStart = 0;     // timestamp when progress counting started
+      let progressElapsed = 0;   // elapsed ms counted so far
+
+      function startProgress(){
+        // resume animation using elapsed offset
+        progressStart = performance.now() - progressElapsed;
+        cancelAnimationFrame(rafId);
+        rafId = requestAnimationFrame(progressTick);
+      }
+
+      function stopProgress(){
+        cancelAnimationFrame(rafId);
+        rafId = null;
+      }
+
+      function resetProgress(){
+        progressElapsed = 0;
+        progressBar.style.width = '0%';
+      }
+
+      function progressTick(now){
+        now = now || performance.now();
+        progressElapsed = now - progressStart;
+        const pct = Math.min(100, (progressElapsed / AUTOPLAY_DELAY) * 100);
+        progressBar.style.width = pct + '%';
+
+        if(progressElapsed >= AUTOPLAY_DELAY){
+          // advance to next slide
+          progressElapsed = 0;
+          show(current + 1);
+          // start progress for next slide
+          progressStart = performance.now();
+        }
+        rafId = requestAnimationFrame(progressTick);
+      }
+
       function show(i){
-        current = (i+slides.length)%slides.length;
+        current = (i + slides.length) % slides.length;
         slides.forEach((s,idx)=>{
           if(idx===current){
             s.classList.add('active');
@@ -174,19 +222,32 @@
           }
         });
         navItems.forEach((n,idx)=> n.classList.toggle('active', idx===current));
+
+        // reset progress when slide changes
+        progressElapsed = 0;
+        progressBar.style.width = '0%';
+        if(autoplay){ startProgress(); } else { stopProgress(); }
       }
 
       navItems.forEach((n,idx)=>{
-        n.addEventListener('click', ()=>{ show(idx); autoplay=false; });
+        n.addEventListener('click', ()=>{ show(idx); autoplay=false; stopProgress(); /* keep bar at 0 when user navigates */ resetProgress(); });
       });
 
       show(0);
-      let interval = setInterval(()=>{ if(!autoplay) return; show(current+1); }, AUTOPLAY_DELAY);
+      if(autoplay) startProgress();
 
-      // Pause on mouse over slides
+      // Pause/resume on mouse over/out of slides
       const slidesEl = document.getElementById('slides');
-      slidesEl.addEventListener('mouseenter', ()=> autoplay=false);
-      slidesEl.addEventListener('mouseleave', ()=> autoplay=true);
+      slidesEl.addEventListener('mouseenter', ()=>{
+        // pause autoplay but keep position so progress can resume
+        autoplay = false;
+        stopProgress();
+      });
+      slidesEl.addEventListener('mouseleave', ()=>{
+        autoplay = true;
+        // resume from existing elapsed time
+        startProgress();
+      });
 
       // expose controls (optional)
       window.intellistar = {show};
