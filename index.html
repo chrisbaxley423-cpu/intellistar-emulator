@@ -53,7 +53,8 @@
 
     /* Radar */
     .radar-wrap{width:900px;max-width:100%;background:linear-gradient(180deg, rgba(0,0,0,0.55), rgba(0,0,0,0.25));padding:12px}
-    .radar{height:320px;background:#123;border-radius:2px}
+    .radar{height:320px;background:#123;border-radius:2px;overflow:hidden}
+    .radar iframe,.radar img{width:100%;height:100%;border:0;display:block}
 
     /* bottom nav */
     .bottom-nav{display:flex;gap:36px;margin-top:18px;align-items:center}
@@ -82,8 +83,8 @@
     </header>
 
     <div class="slides" id="slides">
-      <!-- Now slide -->
-      <div class="slide" id="slide-now" data-bg="https://images.unsplash.com/photo-1505483531331-3f9a4f4b3f7a?auto=format&fit=crop&w=1600&q=60">
+      <!-- Now slide (duration 8s) -->
+      <div class="slide" id="slide-now" data-bg="https://images.unsplash.com/photo-1505483531331-3f9a4f4b3f7a?auto=format&fit=crop&w=1600&q=60" data-duration="8000">
         <section class="now-card">
           <div class="gauge">
             <div class="icon">☀️</div>
@@ -100,8 +101,8 @@
         </section>
       </div>
 
-      <!-- Tonight slide -->
-      <div class="slide" id="slide-tonight" data-bg="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1600&q=60">
+      <!-- Tonight slide (duration 8s) -->
+      <div class="slide" id="slide-tonight" data-bg="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1600&q=60" data-duration="8000">
         <section class="forecast-card">
           <div class="forecast-left">
             <div class="label">TONIGHT</div>
@@ -115,8 +116,8 @@
         </section>
       </div>
 
-      <!-- Beyond: 7-day -->
-      <div class="slide" id="slide-beyond" data-bg="https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=1600&q=60">
+      <!-- Beyond: 7-day (duration 8s) -->
+      <div class="slide" id="slide-beyond" data-bg="https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=1600&q=60" data-duration="8000">
         <section class="seven">
           <div class="day"><div class="dname">WED</div><div class="dicon">☀️</div><div class="dtemp">89<br/><small>71</small></div></div>
           <div class="day"><div class="dname">THU</div><div class="dicon">⛅</div><div class="dtemp">94<br/><small>74</small></div></div>
@@ -128,13 +129,13 @@
         </section>
       </div>
 
-      <!-- Radar slide -->
-      <div class="slide" id="slide-radar" data-bg="https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=1600&q=60">
+      <!-- Radar slide (duration 12s) - live animated radar via RainViewer embed iframe -->
+      <div class="slide" id="slide-radar" data-bg="https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=1600&q=60" data-duration="12000">
         <div class="radar-wrap">
           <div style="color:#fff;font-size:20px;margin-bottom:8px">3 Hour Radar</div>
           <div class="radar">
-            <!-- Placeholder radar image / iframe could go here -->
-            <img src="https://tilecache.rainviewer.com/v2/radar/1/0/0/0/0_0_0.png" alt="radar" style="max-width:100%;height:100%;object-fit:cover"/>
+            <!-- RainViewer map embed (animated radar) -->
+            <iframe src="https://www.rainviewer.com/map.html?loc=28.5383,-81.3792,7&layers=radar&palette=1&play=true" title="Animated radar" loading="lazy"></iframe>
           </div>
         </div>
       </div>
@@ -171,15 +172,15 @@
 
       let current = 0;
       let autoplay = true;
-      const AUTOPLAY_DELAY = 8000; // 8s per slide
+      const DEFAULT_DELAY = 8000; // fallback 8s per slide
 
       // Progress tracking
       let rafId = null;
       let progressStart = 0;     // timestamp when progress counting started
       let progressElapsed = 0;   // elapsed ms counted so far
+      let currentDuration = DEFAULT_DELAY;
 
       function startProgress(){
-        // resume animation using elapsed offset
         progressStart = performance.now() - progressElapsed;
         cancelAnimationFrame(rafId);
         rafId = requestAnimationFrame(progressTick);
@@ -198,17 +199,21 @@
       function progressTick(now){
         now = now || performance.now();
         progressElapsed = now - progressStart;
-        const pct = Math.min(100, (progressElapsed / AUTOPLAY_DELAY) * 100);
+        const pct = Math.min(100, (progressElapsed / currentDuration) * 100);
         progressBar.style.width = pct + '%';
 
-        if(progressElapsed >= AUTOPLAY_DELAY){
-          // advance to next slide
+        if(progressElapsed >= currentDuration){
           progressElapsed = 0;
           show(current + 1);
-          // start progress for next slide
-          progressStart = performance.now();
+          // currentDuration updated in show(); progressStart will be reset there
         }
         rafId = requestAnimationFrame(progressTick);
+      }
+
+      function slideDuration(idx){
+        const s = slides[(idx+slides.length)%slides.length];
+        const d = parseInt(s.dataset.duration, 10);
+        return (isFinite(d) && d > 0) ? d : DEFAULT_DELAY;
       }
 
       function show(i){
@@ -223,6 +228,8 @@
         });
         navItems.forEach((n,idx)=> n.classList.toggle('active', idx===current));
 
+        // update duration for current slide
+        currentDuration = slideDuration(current);
         // reset progress when slide changes
         progressElapsed = 0;
         progressBar.style.width = '0%';
@@ -230,7 +237,7 @@
       }
 
       navItems.forEach((n,idx)=>{
-        n.addEventListener('click', ()=>{ show(idx); autoplay=false; stopProgress(); /* keep bar at 0 when user navigates */ resetProgress(); });
+        n.addEventListener('click', ()=>{ show(idx); autoplay=false; stopProgress(); resetProgress(); });
       });
 
       show(0);
@@ -239,13 +246,11 @@
       // Pause/resume on mouse over/out of slides
       const slidesEl = document.getElementById('slides');
       slidesEl.addEventListener('mouseenter', ()=>{
-        // pause autoplay but keep position so progress can resume
         autoplay = false;
         stopProgress();
       });
       slidesEl.addEventListener('mouseleave', ()=>{
         autoplay = true;
-        // resume from existing elapsed time
         startProgress();
       });
 
