@@ -1,7 +1,10 @@
 const CACHE_NAME = 'intellistar-v1';
 const OFFLINE_URLS = [
   '/',
-  '/index.html'
+  '/index.html',
+  '/demo/index.html',
+  '/demo/styles.css',
+  '/demo/app.js'
 ];
 
 self.addEventListener('install', event => {
@@ -27,7 +30,6 @@ self.addEventListener('fetch', event => {
     caches.match(event.request).then(cached => {
       if (cached) return cached;
       return fetch(event.request).then(response => {
-        // put a copy in the cache
         return caches.open(CACHE_NAME).then(cache => {
           try { cache.put(event.request, response.clone()); } catch (e) { /* some requests can't be cached */ }
           return response;

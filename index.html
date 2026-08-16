@@ -129,10 +129,11 @@
       citySelect.addEventListener('change',e=>updateUI(e.target.value));
       populateCities();citySelect.value=cities[0].id;updateTime();updateUI(citySelect.value);setInterval(updateTime,60*1000);
 
-      // Service Worker hint: optional registration when used on server
+      // Service Worker registration for hosted Pages
       if('serviceWorker' in navigator){
-        // don't fail if offline — this is a no-op in the file:// context
-        try{navigator.serviceWorker.register('sw.js').catch(()=>{});}catch(e){}
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js').catch(()=>{});
+        });
       }
     })();
   </script>
